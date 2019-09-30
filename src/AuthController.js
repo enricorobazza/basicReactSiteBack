@@ -35,6 +35,10 @@ router.post('/login', function(req, res){
             throw err;
         }
         else{
+            if(result.length == 0){
+                return res.status(400).send({error: 'User not found'});
+            }
+
             if(bcrypt.compareSync(req.body.password, result[0].password)){   
                 var token = jwt.sign({ id: result.id }, config.secret, {
                     expiresIn: 86400 // expires in 24 hours
@@ -44,7 +48,7 @@ router.post('/login', function(req, res){
             }
             else{
                 console.log("Usuário ou senha inválidos!");
-                res.send("Usuário ou senha inválidos!");
+                res.status(400).send({error: "Invalid password"});
             }
         }
     });

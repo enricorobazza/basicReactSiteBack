@@ -31,7 +31,8 @@ app.use(express.static('public'));
 app.use('/auth', AuthController);
 
 app.get('/', (req, res) => {
-    
+    console.log('passou!!');
+    res.send('All set!!!!');
 });
 
 app.get('/sections/:op', (req, res) => {
