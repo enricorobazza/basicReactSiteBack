@@ -146,7 +146,8 @@ app.post('/sections/:op/:id', upload.array('images'), (req, res) => {
                 
                 images = req.files;
                 images.forEach(image => {
-                    var url = process.env.BASE_FRONT_URL+"/public/uploads/"+image.filename;
+                    console.log("teste");
+                    var url = process.env.BASE_FRONT_URL+"/public/uploads/"+image.path;
                     db.query("insert into section_images values(?,?)", [req.params.id, url], function(err, result){
                         if(err) {
                             console.log("Erro ao inserir imagem na seção!");
