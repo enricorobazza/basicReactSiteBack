@@ -41,7 +41,6 @@ const upload = multer({
         },
         destination: function(req, file, options, callback){
             var base_url = "/public_html/react/public/uploads/";
-            console.log(file.fieldname);
             callback(null, base_url + file.fieldname + getRandomInt(1,1000) + '-' + Date.now() + path.extname(file.originalname))
         }
     })
@@ -146,8 +145,7 @@ app.post('/sections/:op/:id', upload.array('images'), (req, res) => {
                 
                 images = req.files;
                 images.forEach(image => {
-                    console.log("teste");
-                    var url = process.env.BASE_FRONT_URL+"/public/uploads/"+image.path;
+                    var url = process.env.BASE_FRONT_URL+"/public/uploads/"+image.path.split('/').pop();
                     db.query("insert into section_images values(?,?)", [req.params.id, url], function(err, result){
                         if(err) {
                             console.log("Erro ao inserir imagem na seção!");
@@ -171,12 +169,9 @@ app.post('/sections/:op', upload.array('images') ,(req, res) => {
             throw err;
         }
         else{
-            console.log("Teste");
-            console.log(req);
             images = req.files;
             images.forEach(image => {
-                // console.log(image.path);
-                var url = process.env.BASE_FRONT_URL + "/public/uploads/"+image.path;
+                var url = process.env.BASE_FRONT_URL + "/public/uploads/"+image.path.split("/").pop();
                 db.query("insert into section_images values(?,?)", [result.insertId, url], function(err, result){
                     if(err) throw err;
                 })
