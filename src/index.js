@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const db = require('./database');
 const multer = require('multer');
+const FTPStorage = require('multer-ftp');
 const bodyParser = require('body-parser');
 const path = require('path');
 const fs = require('fs');
@@ -12,16 +13,31 @@ function getRandomInt(min, max){
     return Math.floor(Math.random() * (max - min) + min);
 }
 
-const storage = multer.diskStorage({
-    destination: 'public/uploads/',
-    filename: function(req, file, callback){
-        callback(null, file.fieldname + getRandomInt(1,1000) + '-' + Date.now() + path.extname(file.originalname))
-    }
-});
-
 const upload = multer({
-    storage: storage
-});
+    storage: new FTPStorage({
+        basepath: '/public_html/react/public/uploads',
+        ftp: {
+            host: process.env.FTP_HOST,
+            user: process.env.FTP_USER,
+            password: process.env.FTP_PASSWORD
+        },
+        destination: function(req, file, options, callback){
+            callback(null, file.fieldname + getRandomInt(1,1000) + '-' + Date.now() + path.extname(file.originalname))
+        }
+    })
+})
+
+// const storage = multer.diskStorage({
+//     destination: 'public/uploads/',
+//     filename: function(req, file, callback){
+//         callback(null, file.fieldname + getRandomInt(1,1000) + '-' + Date.now() + path.extname(file.originalname))
+//     }
+// });
+
+// const upload = multer({
+//     storage: storage
+// });
+
 const app = express();
 
 // app.use(cors({origin: "http://cucomaluko.com.br"}))
