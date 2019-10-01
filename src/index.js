@@ -122,5 +122,5 @@ app.post('/sections/:op', upload.array('images') ,(req, res) => {
     });
 })
 
-app.listen(3000);
+app.listen(process.env.PORT || 3000);
 
