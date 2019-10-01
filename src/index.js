@@ -13,38 +13,21 @@ function getRandomInt(min, max){
     return Math.floor(Math.random() * (max - min) + min);
 }
 
-// const upload = multer({
-//     storage: new SFTPStorage({
-//         sftp: {
-//             host: process.env.FTP_HOST,
-//             port: 22,
-//             user: process.env.FTP_USER,
-//             password: process.env.FTP_PASSWORD
-//         },
-//         destination: function(req, file, callback){
-//             callback(null, '/public_html/react/public/uploads/')
-//         },
-//         filename: function(req, file, callback){
-//             callback(null, file.fieldname + getRandomInt(1,1000) + '-' + Date.now() + path.extname(file.originalname))
-//         }
-//     })
-// })
+const storage = new FTPStorage({
+    basepath: '/public_html/react/public/uploads',
+    ftp: {
+        host: process.env.FTP_HOST,
+        secure: false,
+        user: process.env.FTP_USER,
+        password: process.env.FTP_PASSWORD
+    },
+    destination: function(req, file, options, callback){
+        var base_url = "/public_html/react/public/uploads/";
+        callback(null, base_url + file.fieldname + getRandomInt(1,1000) + '-' + Date.now() + path.extname(file.originalname))
+    }
+});
 
-const upload = multer({
-    storage: new FTPStorage({
-        basepath: '/public_html/react/public/uploads',
-        ftp: {
-            host: process.env.FTP_HOST,
-            secure: false,
-            user: process.env.FTP_USER,
-            password: process.env.FTP_PASSWORD
-        },
-        destination: function(req, file, options, callback){
-            var base_url = "/public_html/react/public/uploads/";
-            callback(null, base_url + file.fieldname + getRandomInt(1,1000) + '-' + Date.now() + path.extname(file.originalname))
-        }
-    })
-})
+const upload = multer({ storage });
 
 // const storage = multer.diskStorage({
 //     destination: 'public/uploads/',
@@ -116,20 +99,23 @@ app.post('/sections/:op/:id', upload.array('images'), (req, res) => {
             res.send("Erro ao pesquisar imagens!");
             throw err;
         }
-        // for(var i=0; i<result.length; i++)
-        // {
-        //     image = result[i];
-        //     var fullPath = image.url.split("/");
-        //     var imgPath = "./public/uploads/" + fullPath[fullPath.length-1];
-        //     fs.unlink(imgPath, (err) => {
-        //         if(err)
-        //         {
-        //             console.error(err);
-        //             return;
-        //         }
-        //         // console.log(imgPath + " deletado!");
-        //     })
-        // }
+        for(var i=0; i<result.length; i++)
+        {
+            image = result[i];
+            var path = "/public_html/react/public/uploads/" + image.url.split("/").pop();
+            console.log(path);
+            var file = {path};
+            storage._removeFile(req, file, (err) => {
+                if(err) console.log(err)
+            })
+            // fs.unlink(imgPath, (err) => {
+            //     if(err)
+            //     {
+            //         console.error(err);
+            //         return;
+            //     }
+            // })
+        }
 
         db.query("delete from section_images where section_id = ?", [req.params.id], (err, result) => {
             if(err){
@@ -176,7 +162,6 @@ app.post('/sections/:op', upload.array('images') ,(req, res) => {
                     if(err) throw err;
                 })
             })
-            // console.log(result.insertId);
             res.send("Inserido com sucesso!");
         }
     });
