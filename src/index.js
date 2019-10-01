@@ -170,6 +170,7 @@ app.post('/sections/:op', upload.array('images') ,(req, res) => {
             throw err;
         }
         else{
+            console.log(req);
             images = req.files;
             images.forEach(image => {
                 console.log(image.path);
