@@ -42,7 +42,7 @@ function groupImages(json){
         if(!dict[element.id]){
             dict[element.id] = index;
             var images = element.image ? [element.image] : [];
-            newJson.append({
+            newJson.push({
                 id: element.id,
                 title: element.title, 
                 text: element.text, 
