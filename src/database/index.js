@@ -10,6 +10,10 @@ const config = require('../../config')
 // });
 
 const {host, user, password, database} = config;
+host = process.env.HOST || host;
+user = process.env.USER || user;
+password = process.env.PASSWORD || password;
+database = process.env.DATABASE || database;
 
 const db = mysql.createConnection({ host, user, password, database });
 
