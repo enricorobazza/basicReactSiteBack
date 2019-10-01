@@ -75,7 +75,7 @@ function groupImages(json){
     var dict = {};
     var newJson = [];
     json.forEach((element, index) => {
-        if(!dict[element.id]){
+        if(dict[element.id] == undefined){
             dict[element.id] = index;
             var images = element.image ? [element.image] : [];
             newJson.push({
