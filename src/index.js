@@ -38,13 +38,13 @@ app.get('/', (req, res) => {
 function groupImages(json){
     var newJson = {};
     json.forEach(element => {
-        console.log(element.id);
         if(!newJson[element.id]){
+            var images = element.image ? [element.image] : [];
             newJson[element.id] = {
                 title: element.title, 
                 text: element.text, 
                 branch: element.branch, 
-                images:[element.image]
+                images
             };
         }
         else newJson[element.id].images.push(element.image);
