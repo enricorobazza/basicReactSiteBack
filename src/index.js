@@ -172,6 +172,7 @@ app.post('/sections/:op', upload.array('images') ,(req, res) => {
         else{
             images = req.files;
             images.forEach(image => {
+                console.log(image);
                 var url = process.env.BASE_FRONT_URL + "/public/uploads/"+image.filename;
                 db.query("insert into section_images values(?,?)", [result.insertId, url], function(err, result){
                     if(err) throw err;
