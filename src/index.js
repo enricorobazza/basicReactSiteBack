@@ -36,18 +36,21 @@ app.get('/', (req, res) => {
 });
 
 function groupImages(json){
-    var newJson = {};
-    json.forEach(element => {
-        if(!newJson[element.id]){
+    var dict = {};
+    var newJson = [];
+    json.forEach((element, index) => {
+        if(!dict[element.id]){
+            dict[element.id] = index;
             var images = element.image ? [element.image] : [];
-            newJson[element.id] = {
+            newJson.append({
+                id: element.id,
                 title: element.title, 
                 text: element.text, 
                 branch: element.branch, 
                 images
-            };
+            });
         }
-        else newJson[element.id].images.push(element.image);
+        else newJson[dict[element.id]].images.push(element.image);
     });
     return newJson;
 }
