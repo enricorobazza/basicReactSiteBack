@@ -38,6 +38,7 @@ app.get('/', (req, res) => {
 function groupImages(json){
     var newJson = {};
     json.forEach(element => {
+        console.log(element.id);
         if(!newJson[element.id]){
             newJson[element.id] = {
                 title: element.title, 
