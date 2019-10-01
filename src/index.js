@@ -22,6 +22,7 @@ const upload = multer({
             password: process.env.FTP_PASSWORD
         },
         destination: function(req, file, options, callback){
+            console.log(file.fieldname);
             callback(null, file.fieldname + getRandomInt(1,1000) + '-' + Date.now() + path.extname(file.originalname))
         }
     })
