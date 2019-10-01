@@ -1,5 +1,6 @@
 const express = require('express');
 const mysql = require('mysql');
+const config = require('../../config')
 
 // const db = mysql.createConnection({
 //     host: 'localhost',
@@ -8,12 +9,9 @@ const mysql = require('mysql');
 //     database: 'basicsite'
 // });
 
-const db = mysql.createConnection({
-    host: 'localhost',
-    user: '7834ad935479',
-    password: '3522d90cf732d102',
-    database: 'cucomalukodb'
-});
+const {host, user, password, database} = config;
+
+const db = mysql.createConnection({ host, user, password, database });
 
 db.connect((err) => {
     if(err){

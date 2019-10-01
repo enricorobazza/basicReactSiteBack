@@ -1,5 +1,5 @@
 node_modules/
 sql/
-config.js
+config.json
 public/uploads/*
 !public/uploads/.gitkeep
