@@ -43,7 +43,7 @@ router.post('/login', function(req, res){
                 // var token = jwt.sign({ id: result.id }, config.secret, {
                 //     expiresIn: 86400 // expires in 24 hours
                 // });
-                console.log("logado");
+                // console.log("logado");
                 res.status(200).send("logado");
             }
             else{
