@@ -39,10 +39,12 @@ function groupImages(json){
     var newJson = {};
     json.forEach(element => {
         if(!newJson[element.id]){
-            newJson[element.id].title = element.title;
-            newJson[element.id].text = element.text;
-            newJson[element.id].branch = element.branch;
-            newJson[element.id].images = [element.image];
+            newJson[element.id] = {
+                title: element.title, 
+                text: element.text, 
+                branch: element.branch, 
+                images:[element.image]
+            };
         }
         else newJson[element.id].images.push(element.image);
     });
