@@ -24,7 +24,7 @@ const upload = multer({
 });
 const app = express();
 
-app.use(cors({origin: "http://www.cucomaluko.com.br"}))
+app.use(cors({origin: "http://cucomaluko.com.br"}))
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended:false}));
 app.use(express.static('public'));
