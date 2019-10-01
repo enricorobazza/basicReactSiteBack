@@ -35,10 +35,28 @@ app.get('/', (req, res) => {
     res.send('All set!!!!');
 });
 
+function groupImages(json){
+    var newJson = {};
+    json.forEach(element => {
+        if(!newJson[element.id]){
+            newJson[element.id].title = element.title;
+            newJson[element.id].text = element.text;
+            newJson[element.id].branch = element.branch;
+            newJson[element.id].images = [element.image];
+        }
+        else newJson[element.id].images.push(element.image);
+    });
+    return newJson;
+}
+
 app.get('/sections/:op', (req, res) => {
-    db.query("select s.*, JSON_ARRAYAGG(si.url) as images from sections s left join section_images si on(s.id = si.section_id) where branch = ? group by s.id;",[req.params.op],function(err, sections, fields){
+    // db.query("select s.*, JSON_ARRAYAGG(si.url) as images from sections s left join section_images si on(s.id = si.section_id) where branch = ? group by s.id;",[req.params.op],function(err, sections, fields){
+    //     if (err) throw err;
+    //     res.status(200).json(sections);
+    // });
+    db.query("select s.*, si.url as image from sections s left join section_images si on(s.id = si.section_id) where branch = ?;",[req.params.op],function(err, sections, fields){
         if (err) throw err;
-        res.status(200).json(sections);
+        res.status(200).json(groupImages(sections));
     });
 });
 
@@ -85,7 +103,7 @@ app.post('/sections/:op/:id', upload.array('images'), (req, res) => {
                 
                 images = req.files;
                 images.forEach(image => {
-                    var url = "http://localhost:3000/uploads/"+image.filename;
+                    var url = "https://cucomalukonode.herokuapp.com/uploads/"+image.filename;
                     db.query("insert into section_images values(?,?)", [req.params.id, url], function(err, result){
                         if(err) {
                             console.log("Erro ao inserir imagem na seção!");
