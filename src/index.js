@@ -18,6 +18,7 @@ const upload = multer({
         basepath: '/public_html/react/public/uploads',
         ftp: {
             host: process.env.FTP_HOST,
+            secure: false,
             user: process.env.FTP_USER,
             password: process.env.FTP_PASSWORD
         },
@@ -98,20 +99,20 @@ app.post('/sections/:op/:id', upload.array('images'), (req, res) => {
             res.send("Erro ao pesquisar imagens!");
             throw err;
         }
-        for(var i=0; i<result.length; i++)
-        {
-            image = result[i];
-            var fullPath = image.url.split("/");
-            var imgPath = "./public/uploads/" + fullPath[fullPath.length-1];
-            fs.unlink(imgPath, (err) => {
-                if(err)
-                {
-                    console.error(err);
-                    return;
-                }
-                // console.log(imgPath + " deletado!");
-            })
-        }
+        // for(var i=0; i<result.length; i++)
+        // {
+        //     image = result[i];
+        //     var fullPath = image.url.split("/");
+        //     var imgPath = "./public/uploads/" + fullPath[fullPath.length-1];
+        //     fs.unlink(imgPath, (err) => {
+        //         if(err)
+        //         {
+        //             console.error(err);
+        //             return;
+        //         }
+        //         // console.log(imgPath + " deletado!");
+        //     })
+        // }
 
         db.query("delete from section_images where section_id = ?", [req.params.id], (err, result) => {
             if(err){
