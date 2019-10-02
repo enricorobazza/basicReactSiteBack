@@ -82,8 +82,8 @@ app.get('/sections/:op', (req, res) => {
     // });
     db.query("select s.*, si.url as image from sections s left join section_images si on(s.id = si.section_id) where branch = ?;",[req.params.op],function(err, sections, fields){
         if (err) throw err;
-        res.status(200).json(sections);
-        // res.status(200).json(groupImages(sections));
+        // res.status(200).json(sections);
+        res.status(200).json(groupImages(sections));
     });
 });
 
