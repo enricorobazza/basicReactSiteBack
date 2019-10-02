@@ -77,29 +77,32 @@ function groupImages(json){
 }
 
 app.get('/sections/:op', (req, res) => {
-    dbExecute(db=>{
+    dbExecute(db=>{return new Promise((resolve, reject)=>{
         db.query("select s.*, si.url as image from sections s left join section_images si on(s.id = si.section_id) where branch = ?;",[req.params.op],function(err, sections, fields){
+            resolve();
             if (err) throw err;
             // res.status(200).json(sections);
             res.status(200).json(groupImages(sections));
         });
-    })
+    })})
 });
 
 app.get('/sections/:op/:id', (req, res) => {
-    dbExecute(db=>{
+    dbExecute(db=>{return new Promise((resolve, reject)=>{
         db.query("select * from sections where id = ? and branch = ?", [req.params.id, req.params.op], (err, result) => {
+            resolve();
             if(err) throw err;
             if(result.length > 0) res.status(200).json(result[0]);
             else res.status(404).send("Section not found!");
         });
-    });
+    })});
 })
 
 app.post('/sections/:op/:id', upload.array('images'), (req, res) => {
-    dbExecute(db=>{
+    dbExecute(db=>{return new Promise((resolve, reject)=>{
         db.query("select * from section_images where section_id = ?", [req.params.id], (err, result) => {
             if(err){    
+                resolve();
                 res.send("Erro ao pesquisar imagens!");
                 throw err;
             }
@@ -111,23 +114,18 @@ app.post('/sections/:op/:id', upload.array('images'), (req, res) => {
                 storage._removeFile(req, file, (err) => {
                     if(err) console.log(err)
                 })
-                // fs.unlink(imgPath, (err) => {
-                //     if(err)
-                //     {
-                //         console.error(err);
-                //         return;
-                //     }
-                // })
             }
     
             db.query("delete from section_images where section_id = ?", [req.params.id], (err, result) => {
                 if(err){
+                    resolve();
                     res.send("Erro ao deletar");
                     throw err;
                 }
                     
                 db.query("update sections set text = ? where id = ?", [req.body.text, req.params.id], (err, result) => {
                     if(err){
+                        resolve();
                         res.send("Erro ao atualizar");
                         throw err;
                     }
@@ -137,24 +135,28 @@ app.post('/sections/:op/:id', upload.array('images'), (req, res) => {
                         var url = process.env.BASE_FRONT_URL+"/public/uploads/"+image.path.split('/').pop();
                         db.query("insert into section_images values(?,?)", [req.params.id, url], function(err, result){
                             if(err) {
+                                resolve();
                                 console.log("Erro ao inserir imagem na seção!");
                                 throw err;
                             }
                         })
                     });
+                    resolve();
                     res.send("Atualizado com sucesso!");
                 })
                     
             })
     
         })
-    });
+    })});
 })
 
 app.post('/sections/:op', upload.array('images') ,(req, res) => {
-    dbExecute(db=>{
+    dbExecute(db=> {return new Promise((resolve, reject) =>
+    {
         db.query("insert into sections values(0, ?, ?, ?, ?)", [req.body.title, req.body.text, '', req.params.op], (err, result) => {
             if(err){ 
+                resolve();
                 res.send("Erro ao inserir!");
                 throw err;
             }
@@ -163,13 +165,17 @@ app.post('/sections/:op', upload.array('images') ,(req, res) => {
                 images.forEach(image => {
                     var url = process.env.BASE_FRONT_URL + "/public/uploads/"+image.path.split("/").pop();
                     db.query("insert into section_images values(?,?)", [result.insertId, url], function(err, result){
-                        if(err) throw err;
+                        if(err){ 
+                            resolve();
+                            throw err;
+                        }
                     })
                 })
+                resolve();
                 res.send("Inserido com sucesso!");
             }
         });
-    });
+    })});
 })
 
 app.listen(process.env.PORT || 3000);
