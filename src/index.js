@@ -140,11 +140,7 @@ app.post('/sections/:op/:id', upload.array('images'), (req, res) => {
                         }
                     })
                 });
-                res.statusCode = 301;
-                res.setHeader("Location", process.env.BASE_FRONT_URL);
-                res.end();
-                // res.send("Atualizado com sucesso!");
-                
+                res.send("Atualizado com sucesso!");
             })
                 
         })
