@@ -54,12 +54,13 @@ app.get('/', (req, res) => {
     res.send('All set!!!!');
 });
 
+
 function groupImages(json){
     var dict = {};
     var newJson = [];
     json.forEach((element, index) => {
         if(dict[element.id] == undefined){
-            dict[element.id] = index;
+            dict[element.id] = newJson.length;
             var images = element.image ? [element.image] : [];
             newJson.push({
                 id: element.id,
