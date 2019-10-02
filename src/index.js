@@ -105,7 +105,6 @@ app.post('/sections/:op/:id', upload.array('images'), (req, res) => {
         {
             image = result[i];
             var path = "/public_html/react/public/uploads/" + image.url.split("/").pop();
-            console.log(path);
             var file = {path};
             storage._removeFile(req, file, (err) => {
                 if(err) console.log(err)
@@ -125,6 +124,7 @@ app.post('/sections/:op/:id', upload.array('images'), (req, res) => {
                 throw err;
             }
             console.log(req.params.id);
+            console.log(req.params.op);
                 
             db.query("update sections set text = ? where id = ?", [req.body.text, req.params.id], (err, result) => {
                 if(err){
