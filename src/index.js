@@ -123,8 +123,6 @@ app.post('/sections/:op/:id', upload.array('images'), (req, res) => {
                 res.send("Erro ao deletar");
                 throw err;
             }
-            console.log(req.params.id);
-            console.log(req.params.op);
                 
             db.query("update sections set text = ? where id = ?", [req.body.text, req.params.id], (err, result) => {
                 if(err){
