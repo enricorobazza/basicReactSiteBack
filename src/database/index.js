@@ -20,13 +20,25 @@ user = process.env.USER;
 password = process.env.PASSWORD;
 database = process.env.DATABASE;
 
-const db = mysql.createConnection({ host, user, password, database });
+function dbExecute(cb){
+    let db = mysql.createConnection({ host, user, password, database });
+    db.connect(err=>{
+        if(err){
+            throw err;
+        }
+        cb(db);
+        db.end();
+    })
+}
 
-db.connect((err) => {
-    if(err){
-        throw err;
-    }
-    console.log('MySQL is connected...');
-});
+// const db = mysql.createConnection({ host, user, password, database });
 
-module.exports = db;
+// db.connect((err) => {
+//     if(err){
+//         throw err;
+//     }
+//     console.log('MySQL is connected...');
+// });
+
+// module.exports = db;
+module.exports = dbExecute;

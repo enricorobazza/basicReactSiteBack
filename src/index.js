@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
-const db = require('./database');
+// const db = require('./database');
+const dbExecute = require('./database');
 const multer = require('multer');
 const FTPStorage = require('multer-ftp');
 const bodyParser = require('body-parser');
@@ -76,94 +77,98 @@ function groupImages(json){
 }
 
 app.get('/sections/:op', (req, res) => {
-    // db.query("select s.*, JSON_ARRAYAGG(si.url) as images from sections s left join section_images si on(s.id = si.section_id) where branch = ? group by s.id;",[req.params.op],function(err, sections, fields){
-    //     if (err) throw err;
-    //     res.status(200).json(sections);
-    // });
-    db.query("select s.*, si.url as image from sections s left join section_images si on(s.id = si.section_id) where branch = ?;",[req.params.op],function(err, sections, fields){
-        if (err) throw err;
-        // res.status(200).json(sections);
-        res.status(200).json(groupImages(sections));
-    });
+    dbExecute(db=>{
+        db.query("select s.*, si.url as image from sections s left join section_images si on(s.id = si.section_id) where branch = ?;",[req.params.op],function(err, sections, fields){
+            if (err) throw err;
+            // res.status(200).json(sections);
+            res.status(200).json(groupImages(sections));
+        });
+    })
 });
 
 app.get('/sections/:op/:id', (req, res) => {
-    db.query("select * from sections where id = ? and branch = ?", [req.params.id, req.params.op], (err, result) => {
-        if(err) throw err;
-        if(result.length > 0) res.status(200).json(result[0]);
-        else res.status(404).send("Section not found!");
+    dbExecute(db=>{
+        db.query("select * from sections where id = ? and branch = ?", [req.params.id, req.params.op], (err, result) => {
+            if(err) throw err;
+            if(result.length > 0) res.status(200).json(result[0]);
+            else res.status(404).send("Section not found!");
+        });
     });
 })
 
 app.post('/sections/:op/:id', upload.array('images'), (req, res) => {
-    db.query("select * from section_images where section_id = ?", [req.params.id], (err, result) => {
-        if(err){    
-            res.send("Erro ao pesquisar imagens!");
-            throw err;
-        }
-        for(var i=0; i<result.length; i++)
-        {
-            image = result[i];
-            var path = "/public_html/react/public/uploads/" + image.url.split("/").pop();
-            var file = {path};
-            storage._removeFile(req, file, (err) => {
-                if(err) console.log(err)
-            })
-            // fs.unlink(imgPath, (err) => {
-            //     if(err)
-            //     {
-            //         console.error(err);
-            //         return;
-            //     }
-            // })
-        }
-
-        db.query("delete from section_images where section_id = ?", [req.params.id], (err, result) => {
-            if(err){
-                res.send("Erro ao deletar");
+    dbExecute(db=>{
+        db.query("select * from section_images where section_id = ?", [req.params.id], (err, result) => {
+            if(err){    
+                res.send("Erro ao pesquisar imagens!");
                 throw err;
             }
-                
-            db.query("update sections set text = ? where id = ?", [req.body.text, req.params.id], (err, result) => {
+            for(var i=0; i<result.length; i++)
+            {
+                image = result[i];
+                var path = "/public_html/react/public/uploads/" + image.url.split("/").pop();
+                var file = {path};
+                storage._removeFile(req, file, (err) => {
+                    if(err) console.log(err)
+                })
+                // fs.unlink(imgPath, (err) => {
+                //     if(err)
+                //     {
+                //         console.error(err);
+                //         return;
+                //     }
+                // })
+            }
+    
+            db.query("delete from section_images where section_id = ?", [req.params.id], (err, result) => {
                 if(err){
-                    res.send("Erro ao atualizar");
+                    res.send("Erro ao deletar");
                     throw err;
                 }
-                
-                images = req.files;
-                images.forEach(image => {
-                    var url = process.env.BASE_FRONT_URL+"/public/uploads/"+image.path.split('/').pop();
-                    db.query("insert into section_images values(?,?)", [req.params.id, url], function(err, result){
-                        if(err) {
-                            console.log("Erro ao inserir imagem na seção!");
-                            throw err;
-                        }
-                    })
-                });
-                res.send("Atualizado com sucesso!");
+                    
+                db.query("update sections set text = ? where id = ?", [req.body.text, req.params.id], (err, result) => {
+                    if(err){
+                        res.send("Erro ao atualizar");
+                        throw err;
+                    }
+                    
+                    images = req.files;
+                    images.forEach(image => {
+                        var url = process.env.BASE_FRONT_URL+"/public/uploads/"+image.path.split('/').pop();
+                        db.query("insert into section_images values(?,?)", [req.params.id, url], function(err, result){
+                            if(err) {
+                                console.log("Erro ao inserir imagem na seção!");
+                                throw err;
+                            }
+                        })
+                    });
+                    res.send("Atualizado com sucesso!");
+                })
+                    
             })
-                
+    
         })
-
-    })
+    });
 })
 
 app.post('/sections/:op', upload.array('images') ,(req, res) => {
-    db.query("insert into sections values(0, ?, ?, ?, ?)", [req.body.title, req.body.text, '', req.params.op], (err, result) => {
-        if(err){ 
-            res.send("Erro ao inserir!");
-            throw err;
-        }
-        else{
-            images = req.files;
-            images.forEach(image => {
-                var url = process.env.BASE_FRONT_URL + "/public/uploads/"+image.path.split("/").pop();
-                db.query("insert into section_images values(?,?)", [result.insertId, url], function(err, result){
-                    if(err) throw err;
+    dbExecute(db=>{
+        db.query("insert into sections values(0, ?, ?, ?, ?)", [req.body.title, req.body.text, '', req.params.op], (err, result) => {
+            if(err){ 
+                res.send("Erro ao inserir!");
+                throw err;
+            }
+            else{
+                images = req.files;
+                images.forEach(image => {
+                    var url = process.env.BASE_FRONT_URL + "/public/uploads/"+image.path.split("/").pop();
+                    db.query("insert into section_images values(?,?)", [result.insertId, url], function(err, result){
+                        if(err) throw err;
+                    })
                 })
-            })
-            res.send("Inserido com sucesso!");
-        }
+                res.send("Inserido com sucesso!");
+            }
+        });
     });
 })
 
