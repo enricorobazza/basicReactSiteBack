@@ -26,8 +26,12 @@ function dbExecute(cb){
         if(err){
             throw err;
         }
+        console.log("MySQL connected...");
         cb(db);
-        db.end();
+        db.end(err =>{
+            if(err) throw err;
+            console.log("MySQL disconnected...");
+        });
     })
 }
 
