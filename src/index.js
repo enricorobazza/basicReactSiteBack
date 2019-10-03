@@ -106,7 +106,9 @@ app.post('/sections/:op/:id', upload.array('images'), (req, res) =>{
             "delete from section_images where section_id = ?;"+
             "update sections set text = ? where id = ?;", [req.params.id, req.params.id, req.body.text, req.params.id],
             (err, results) =>{
+                console.log("primeiro set query");
                 if(err){
+                    console.log("err1");
                     resolve();
                     throw err;
                 }
@@ -122,14 +124,19 @@ app.post('/sections/:op/:id', upload.array('images'), (req, res) =>{
                 images.forEach(image => {
                     var url = process.env.BASE_FRONT_URL+"/public/uploads/"+image.path.split('/').pop();
                     db.query("insert into section_images values(?,?)", [req.params.id, url], function(err, result){
+                        console.log("segundo set query");
                         resolve();
                         if(err) {
+                            console.log("err 2");
                             console.log("Erro ao inserir imagem na seção!");
                             throw err;
                         }
                     })
                 });
-                if(!images.length) resolve();
+                if(!images.length){ 
+                    console.log("length 0");
+                    resolve();
+                }
             })
 
     })});
