@@ -134,14 +134,14 @@ app.post('/sections/:op/:id', upload.array('images'), (req, res) => {
                     images.forEach(image => {
                         var url = process.env.BASE_FRONT_URL+"/public/uploads/"+image.path.split('/').pop();
                         db.query("insert into section_images values(?,?)", [req.params.id, url], function(err, result){
+                            resolve();
                             if(err) {
-                                resolve();
                                 console.log("Erro ao inserir imagem na seção!");
                                 throw err;
                             }
                         })
                     });
-                    resolve();
+                    if(!images.length) resolve();
                     res.send("Atualizado com sucesso!");
                 })
                     
