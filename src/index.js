@@ -98,58 +98,97 @@ app.get('/sections/:op/:id', (req, res) => {
     })});
 })
 
-app.post('/sections/:op/:id', upload.array('images'), (req, res) => {
+app.post('/sections/:op/:id', upload.array('images'), (req, res) =>{
+
     dbExecute(db=>{return new Promise((resolve, reject)=>{
-        db.query("select * from section_images where section_id = ?", [req.params.id], (err, result) => {
-            if(err){    
-                resolve();
-                res.send("Erro ao pesquisar imagens!");
-                throw err;
-            }
-            for(var i=0; i<result.length; i++)
-            {
-                image = result[i];
-                var path = "/public_html/react/public/uploads/" + image.url.split("/").pop();
-                var file = {path};
-                storage._removeFile(req, file, (err) => {
-                    if(err) console.log(err)
-                })
-            }
-    
-            db.query("delete from section_images where section_id = ?", [req.params.id], (err, result) => {
+        db.query(
+            "select * from section_images where section_id = ?;" + 
+            "delete from section_images where section_id = ?;"+
+            "update sections set text = ? where id = ?;", [req.params.id, req.params.id, req.body.text, req.params.id],
+            (err, results) =>{
                 if(err){
                     resolve();
-                    res.send("Erro ao deletar");
                     throw err;
                 }
-                    
-                db.query("update sections set text = ? where id = ?", [req.body.text, req.params.id], (err, result) => {
-                    if(err){
+                for(var i=0; i<results[0].length; i++){
+                    image = results[0][i];
+                    var path = "/public_html/react/public/uploads/" + image.url.split("/").pop();
+                    var file = {path};
+                    storage._removeFile(req, file, (err) => {
+                        if(err) console.log(err)
+                    })
+                }
+                images = req.files;
+                images.forEach(image => {
+                    var url = process.env.BASE_FRONT_URL+"/public/uploads/"+image.path.split('/').pop();
+                    db.query("insert into section_images values(?,?)", [req.params.id, url], function(err, result){
                         resolve();
-                        res.send("Erro ao atualizar");
-                        throw err;
-                    }
-                    
-                    images = req.files;
-                    images.forEach(image => {
-                        var url = process.env.BASE_FRONT_URL+"/public/uploads/"+image.path.split('/').pop();
-                        db.query("insert into section_images values(?,?)", [req.params.id, url], function(err, result){
-                            resolve();
-                            if(err) {
-                                console.log("Erro ao inserir imagem na seção!");
-                                throw err;
-                            }
-                        })
-                    });
-                    if(!images.length) resolve();
-                    res.send("Atualizado com sucesso!");
-                })
-                    
+                        if(err) {
+                            console.log("Erro ao inserir imagem na seção!");
+                            throw err;
+                        }
+                    })
+                });
+                if(!images.length) resolve();
             })
-    
-        })
+
     })});
-})
+
+
+});
+
+// app.post('/sections/:op/:id', upload.array('images'), (req, res) => {
+//     dbExecute(db=>{return new Promise((resolve, reject)=>{
+//         db.query("select * from section_images where section_id = ?", [req.params.id], (err, result) => {
+//             if(err){    
+//                 resolve();
+//                 res.send("Erro ao pesquisar imagens!");
+//                 throw err;
+//             }
+//             for(var i=0; i<result.length; i++)
+//             {
+//                 image = result[i];
+//                 var path = "/public_html/react/public/uploads/" + image.url.split("/").pop();
+//                 var file = {path};
+//                 storage._removeFile(req, file, (err) => {
+//                     if(err) console.log(err)
+//                 })
+//             }
+    
+//             db.query("delete from section_images where section_id = ?", [req.params.id], (err, result) => {
+//                 if(err){
+//                     resolve();
+//                     res.send("Erro ao deletar");
+//                     throw err;
+//                 }
+                    
+//                 db.query("update sections set text = ? where id = ?", [req.body.text, req.params.id], (err, result) => {
+//                     if(err){
+//                         resolve();
+//                         res.send("Erro ao atualizar");
+//                         throw err;
+//                     }
+                    
+//                     images = req.files;
+//                     images.forEach(image => {
+//                         var url = process.env.BASE_FRONT_URL+"/public/uploads/"+image.path.split('/').pop();
+//                         db.query("insert into section_images values(?,?)", [req.params.id, url], function(err, result){
+//                             resolve();
+//                             if(err) {
+//                                 console.log("Erro ao inserir imagem na seção!");
+//                                 throw err;
+//                             }
+//                         })
+//                     });
+//                     if(!images.length) resolve();
+//                     res.send("Atualizado com sucesso!");
+//                 })
+                    
+//             })
+    
+//         })
+//     })});
+// })
 
 app.post('/sections/:op', upload.array('images') ,(req, res) => {
     dbExecute(db=> {return new Promise((resolve, reject) =>

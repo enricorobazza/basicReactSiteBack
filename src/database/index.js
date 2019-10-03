@@ -21,17 +21,19 @@ password = process.env.PASSWORD;
 database = process.env.DATABASE;
 
 function dbExecute(cb){
-    let db = mysql.createConnection({ host, user, password, database });
+    let db = mysql.createConnection({ host, user, password, database, multipleStatements: true });
     db.connect(err=>{
         if(err){
             throw err;
         }
         console.log("MySQL connected...");
-        cb(db);
-        db.end(err =>{
-            if(err) throw err;
-            console.log("MySQL disconnected...");
-        });
+        cb(db).then(()=>{
+            db.end(err =>{
+                if(err) throw err;
+                console.log("MySQL disconnected...");
+            });
+        })
+        
     })
 }
 
