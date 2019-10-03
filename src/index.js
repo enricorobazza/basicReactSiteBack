@@ -106,10 +106,9 @@ app.post('/sections/:op/:id', upload.array('images'), (req, res) =>{
             "delete from section_images where section_id = ?;"+
             "update sections set text = ? where id = ?;", [req.params.id, req.params.id, req.body.text, req.params.id],
             (err, results) =>{
-                console.log("primeiro set query");
                 if(err){
-                    console.log("err1");
                     resolve();
+                    res.send("Erro.");
                     throw err;
                 }
                 for(var i=0; i<results[0].length; i++){
@@ -127,16 +126,16 @@ app.post('/sections/:op/:id', upload.array('images'), (req, res) =>{
                         console.log("segundo set query");
                         resolve();
                         if(err) {
-                            console.log("err 2");
                             console.log("Erro ao inserir imagem na seção!");
+                            res.send("Erro");
                             throw err;
                         }
                     })
                 });
                 if(!images.length){ 
-                    console.log("length 0");
                     resolve();
                 }
+                res.send("OK!");
             })
 
     })});
