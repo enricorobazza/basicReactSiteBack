@@ -1,12 +1,10 @@
 const express = require('express');
 const cors = require('cors');
-// const db = require('./database');
 const dbExecute = require('./database');
 const multer = require('multer');
 const FTPStorage = require('multer-ftp');
 const bodyParser = require('body-parser');
 const path = require('path');
-const fs = require('fs');
 
 var AuthController = require('./AuthController');
 
@@ -51,10 +49,8 @@ app.use(express.static('public'));
 app.use('/auth', AuthController);
 
 app.get('/', (req, res) => {
-    console.log('passou!!');
-    res.send('All set!!!!');
+    res.status(200).send({});
 });
-
 
 function groupImages(json){
     var dict = {};
@@ -80,9 +76,8 @@ app.get('/sections/:op', (req, res) => {
     dbExecute(db=>{return new Promise((resolve, reject)=>{
         db.query("select s.*, si.url as image from sections s left join section_images si on(s.id = si.section_id) where branch = ?;",[req.params.op],function(err, sections, fields){
             resolve();
-            if (err) throw err;
-            // res.status(200).json(sections);
-            res.status(200).json(groupImages(sections));
+            if (err) res.status(400).send({error: "Failed to find sections.", description: err});
+            else res.status(200).json(groupImages(sections));
         });
     })})
 });
@@ -91,15 +86,14 @@ app.get('/sections/:op/:id', (req, res) => {
     dbExecute(db=>{return new Promise((resolve, reject)=>{
         db.query("select * from sections where id = ? and branch = ?", [req.params.id, req.params.op], (err, result) => {
             resolve();
-            if(err) throw err;
+            if(err) res.status(400).send({error: "Failed to search section.", description: err});
             if(result.length > 0) res.status(200).json(result[0]);
-            else res.status(404).send("Section not found!");
+            else res.status(404).send({error: "Section not found."});
         });
     })});
 })
 
-app.post('/sections/:op/:id', upload.array('images'), (req, res) =>{
-
+app.put('/sections/:op/:id', upload.array('images'), (req, res) =>{
     dbExecute(db=>{return new Promise((resolve, reject)=>{
         db.query(
             "select * from section_images where section_id = ?;" + 
@@ -108,8 +102,7 @@ app.post('/sections/:op/:id', upload.array('images'), (req, res) =>{
             (err, results) =>{
                 if(err){
                     resolve();
-                    res.send("Erro.");
-                    throw err;
+                    res.send({error: "Failed to update section.", description: err});
                 }
                 for(var i=0; i<results[0].length; i++){
                     image = results[0][i];
@@ -123,78 +116,21 @@ app.post('/sections/:op/:id', upload.array('images'), (req, res) =>{
                 images.forEach(image => {
                     var url = process.env.BASE_FRONT_URL+"/public/uploads/"+image.path.split('/').pop();
                     db.query("insert into section_images values(?,?)", [req.params.id, url], function(err, result){
-                        console.log("segundo set query");
                         resolve();
                         if(err) {
-                            console.log("Erro ao inserir imagem na seção!");
-                            res.send("Erro");
-                            throw err;
+                            res.status(400).send({error: "Failed to insert section image.", description: err});
+                            return;
                         }
                     })
                 });
                 if(!images.length){ 
                     resolve();
                 }
-                res.send("OK!");
+                res.status(200).send({id:req.params.id});
             })
-
     })});
-
-
 });
 
-// app.post('/sections/:op/:id', upload.array('images'), (req, res) => {
-//     dbExecute(db=>{return new Promise((resolve, reject)=>{
-//         db.query("select * from section_images where section_id = ?", [req.params.id], (err, result) => {
-//             if(err){    
-//                 resolve();
-//                 res.send("Erro ao pesquisar imagens!");
-//                 throw err;
-//             }
-//             for(var i=0; i<result.length; i++)
-//             {
-//                 image = result[i];
-//                 var path = "/public_html/react/public/uploads/" + image.url.split("/").pop();
-//                 var file = {path};
-//                 storage._removeFile(req, file, (err) => {
-//                     if(err) console.log(err)
-//                 })
-//             }
-    
-//             db.query("delete from section_images where section_id = ?", [req.params.id], (err, result) => {
-//                 if(err){
-//                     resolve();
-//                     res.send("Erro ao deletar");
-//                     throw err;
-//                 }
-                    
-//                 db.query("update sections set text = ? where id = ?", [req.body.text, req.params.id], (err, result) => {
-//                     if(err){
-//                         resolve();
-//                         res.send("Erro ao atualizar");
-//                         throw err;
-//                     }
-                    
-//                     images = req.files;
-//                     images.forEach(image => {
-//                         var url = process.env.BASE_FRONT_URL+"/public/uploads/"+image.path.split('/').pop();
-//                         db.query("insert into section_images values(?,?)", [req.params.id, url], function(err, result){
-//                             resolve();
-//                             if(err) {
-//                                 console.log("Erro ao inserir imagem na seção!");
-//                                 throw err;
-//                             }
-//                         })
-//                     });
-//                     if(!images.length) resolve();
-//                     res.send("Atualizado com sucesso!");
-//                 })
-                    
-//             })
-    
-//         })
-//     })});
-// })
 
 app.post('/sections/:op', upload.array('images') ,(req, res) => {
     dbExecute(db=> {return new Promise((resolve, reject) =>
@@ -202,8 +138,8 @@ app.post('/sections/:op', upload.array('images') ,(req, res) => {
         db.query("insert into sections values(0, ?, ?, ?, ?)", [req.body.title, req.body.text, '', req.params.op], (err, result) => {
             if(err){ 
                 resolve();
-                res.send("Erro ao inserir!");
-                throw err;
+                res.status(400).send({error:"Section insertion failed.", description: err});
+                return;
             }
             else{
                 images = req.files;
@@ -212,12 +148,13 @@ app.post('/sections/:op', upload.array('images') ,(req, res) => {
                     db.query("insert into section_images values(?,?)", [result.insertId, url], function(err, result){
                         if(err){ 
                             resolve();
-                            throw err;
+                            res.status(400).send({error:"Section images insertion failed.", description: err});
+                            return;
                         }
                     })
                 })
                 resolve();
-                res.send("Inserido com sucesso!");
+                res.status(201).send({id: result.insertId});
             }
         });
     })});
