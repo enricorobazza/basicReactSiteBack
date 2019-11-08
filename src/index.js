@@ -139,7 +139,14 @@ app.post('/email', (req, res) => {
         return;
     }
 
-    var remetente = nodemailer.createTransport({
+    if(req.body.op != "cuco" && req.body.op != "estacao"){
+        req.status(404).send({error: 'Unknown error.'})
+    }
+
+    let receiver = req.body.op == "cuco" ? "contato@cucomaluko.com.br" : "estacao@cucomaluko.com.br";
+    receiver = "enricorobazzi@gmail.com"
+
+    var sender = nodemailer.createTransport({
         host: 'mail.cucomaluko.com.br',
         port: 465,
         secure: true,
@@ -151,12 +158,12 @@ app.post('/email', (req, res) => {
 
     var emailToSend = {
         from: req.body.email,
-        to: 'enricorobazzi@gmail.com',
-        subject: '(Mensagem do Site) de '+req.body.name,
+        to: receiver,
+        subject: '(Contato via Site) de '+req.body.name,
         text: req.body.message
     }
 
-    remetente.sendMail(emailToSend, (err)=>{
+    sender.sendMail(emailToSend, (err)=>{
         if(err) {
             console.log(err)
             res.status(404).send(err);
