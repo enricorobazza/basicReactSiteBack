@@ -5,6 +5,7 @@ const multer = require('multer');
 const FTPStorage = require('multer-ftp');
 const bodyParser = require('body-parser');
 const path = require('path');
+const nodemailer = require('nodemailer')
 
 var AuthController = require('./AuthController');
 
@@ -131,6 +132,29 @@ app.put('/sections/:op/:id', upload.array('images'), (req, res) =>{
     })});
 });
 
+app.post('/email', (req, res) => {
+    var remetente = nodemailer.createTransport({
+        host: 'mail.cucomaluko.com.br',
+        service: 'SMTP',
+        port: 465,
+        secure: true,
+        auth:{
+            user: process.env.SMTP_USER,
+            pass: process.env.SMTP_PASS
+        }
+    });
+
+    var emailToSend = {
+        from: 'contato@cuckomalulo.com.br',
+        to: 'enricorobazzi@gmail.com',
+        subject: 'Email enviado com sucesso',
+        text: 'Email enviado'
+    }
+
+    remetente.sendMail(emailToSend, (err)=>{
+        if(err) console.log(err)
+    })
+})
 
 app.post('/sections/:op', upload.array('images') ,(req, res) => {
     dbExecute(db=> {return new Promise((resolve, reject) =>
