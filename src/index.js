@@ -152,7 +152,11 @@ app.post('/email', (req, res) => {
     }
 
     remetente.sendMail(emailToSend, (err)=>{
-        if(err) console.log(err)
+        if(err) {
+            console.log(err)
+            res.status(404).send(err);
+        }
+        res.send({ok: "ok"})
     })
 })
 
