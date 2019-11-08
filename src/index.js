@@ -133,6 +133,12 @@ app.put('/sections/:op/:id', upload.array('images'), (req, res) =>{
 });
 
 app.post('/email', (req, res) => {
+    if(req.body.email == "" || req.body.message == "")
+    {
+        res.status(404).send({error: 'E-mail body or e-mail sender are empty.'});
+        return;
+    }
+
     var remetente = nodemailer.createTransport({
         host: 'mail.cucomaluko.com.br',
         port: 465,
@@ -143,13 +149,11 @@ app.post('/email', (req, res) => {
         }
     });
 
-    console.log(process.env.SMTP_USER + "    " + process.env.SMTP_PASS);
-
     var emailToSend = {
-        from: 'contato@cuckomalulo.com.br',
+        from: req.body.email,
         to: 'enricorobazzi@gmail.com',
-        subject: 'Email enviado com sucesso',
-        text: 'Email enviado'
+        subject: '(Mensagem do Site) de '+req.body.name,
+        text: req.body.message
     }
 
     remetente.sendMail(emailToSend, (err)=>{
