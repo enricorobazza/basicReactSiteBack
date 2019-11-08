@@ -135,7 +135,6 @@ app.put('/sections/:op/:id', upload.array('images'), (req, res) =>{
 app.post('/email', (req, res) => {
     var remetente = nodemailer.createTransport({
         host: 'mail.cucomaluko.com.br',
-        service: 'SMTP',
         port: 465,
         secure: true,
         auth:{
@@ -143,6 +142,8 @@ app.post('/email', (req, res) => {
             pass: process.env.SMTP_PASS
         }
     });
+
+    console.log(process.env.SMTP_USER + "    " + process.env.SMTP_PASS);
 
     var emailToSend = {
         from: 'contato@cuckomalulo.com.br',
